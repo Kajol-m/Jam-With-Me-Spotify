@@ -1,7 +1,7 @@
 "use client";
 const SpotifyAuthorization: React.FC = () => {
   const handleLogin = () => {
-    window.location.href = "http://localhost:5000/login"; // backend login route
+    window.location.href = "http://localhost:5000/uis/pages/main"; // backend login route
   };
 
   return (

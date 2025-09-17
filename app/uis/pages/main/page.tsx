@@ -1,68 +1,50 @@
 "use client";
 import { useEffect, useState } from "react";
 
-interface SpotifyProfile {
+interface SpotifyUser {
   display_name: string;
   email: string;
-  country: string;
+  id: string;
   images?: { url: string }[];
 }
 
-const SpotifyMain: React.FC = () => {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [profile, setProfile] = useState<SpotifyProfile | null>(null);
+const SpotifyProfile: React.FC = () => {
+  const [user, setUser] = useState<SpotifyUser | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // 1. Extract access_token from URL hash
   useEffect(() => {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const token = params.get("access_token");
-    console.log("Tolen: ",token);
-    if (token) {
-      setAccessToken(token);
-      // clean up URL (so token isn't visible)
-      window.history.replaceState({}, document.title, "/uis/pages/main");
-    }
+    const fetchSpotifyProfile = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/uis/pages/main"); // your backend endpoint
+        if (!res.ok) throw new Error("Failed to fetch Spotify data");
+
+        const data = await res.json(); // backend should send back the Spotify user details
+        setUser(data);
+      } catch (err: any) {
+        setError(err.message);
+      }
+    };
+
+    fetchSpotifyProfile();
   }, []);
 
-  // 2. Fetch user profile if token exists
-  useEffect(() => {
-    if (!accessToken) return;
-
-    fetch("https://api.spotify.com/v1/me", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setProfile(data))
-      .catch((err) => console.error("Error fetching profile:", err));
-  }, [accessToken]);
-
-  if (!accessToken) {
-    return <p className="text-center mt-20">Redirecting to Spotify login...</p>;
-  }
+  if (error) return <p className="text-red-500">Error: {error}</p>;
+  if (!user) return <p>Loading Spotify Profile...</p>;
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      {profile ? (
-        <div className="bg-gray-100 p-6 rounded-2xl shadow-md w-80 text-center">
-          {profile.images && profile.images.length > 0 && (
-            <img
-              src={profile.images[0].url}
-              alt="Spotify Profile"
-              className="w-24 h-24 rounded-full mx-auto mb-4"
-            />
-          )}
-          <h1 className="text-xl font-bold">{profile.display_name}</h1>
-          <p className="text-gray-600">{profile.email}</p>
-          <p className="text-gray-500 text-sm">Country: {profile.country}</p>
-        </div>
-      ) : (
-        <p>Loading Spotify profile...</p>
+    <div className="flex flex-col items-center mt-10">
+      {user.images && user.images.length > 0 && (
+        <img
+          src={user.images[0].url}
+          alt="Profile"
+          className="w-24 h-24 rounded-full mb-4"
+        />
       )}
+      <h2 className="text-xl font-bold">{user.display_name}</h2>
+      <p>Email: {user.email}</p>
+      <p>Spotify ID: {user.id}</p>
     </div>
   );
 };
 
-export default SpotifyMain;
+export default SpotifyProfile;
