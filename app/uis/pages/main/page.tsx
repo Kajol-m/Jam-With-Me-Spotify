@@ -15,8 +15,9 @@ const SpotifyMain: React.FC = () => {
   // 1. Extract access_token from URL hash
   useEffect(() => {
     const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
+    const params = new URLSearchParams(window.location.search);
     const token = params.get("access_token");
+    console.log("token");
     if (token) {
       setAccessToken(token);
       // clean up URL (so token isn't visible)
